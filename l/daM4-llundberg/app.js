@@ -134,32 +134,39 @@ app.get('/authors', (req, res) => {
 * POST
 */
 app.post('/authors', (req, res) => {
-    console.log("AuthorID: " + req.body.userinput.authorID[0]);
     var data = {
-        authorID: req.body.userinput.authorID[0],
-        firstname: req.body.userinput.firstname[0],
-        lastname: req.body.userinput.lastname[0],
-        nationality: req.body.userinput.nationality[0] 
+        authorID: req.body.useri.authorid[0],
+        firstname: req.body.useri.firstname[0],
+        lastname: req.body.useri.lastname[0],
+        nationality: req.body.useri.nationality[0] 
     }
-    console.log("AuthorID: " + req.body.userinput.authorID[0]);
-
-    var params = [data.authorID, data.firstname, data.lastname, data.nationality];
-    var cookie = req.body.cookie;
-    console.log("Req body: " + req.body);
     console.log("Req cookie: " + req.cookies['SessionID']);
-
-    console.log(data);
-
-    var SQL = `INSERT INTO author(authorID, firstname, lastname, nationality) VALUES(?,?,?,?);`;
-    db.run(SQL, params, (err) => {
-        if(err){
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID){
+                var params = [data.authorID, data.firstname, data.lastname, data.nationality];
+                console.log(data);
+                var SQL = `INSERT INTO author(authorID, firstname, lastname, nationality) VALUES(?,?,?,?);`;
+                
+                db.run(SQL, params, (err) => {
+                    if(err){
+                        console.log("Something went wrong!");
+                    } else {
+                        console.log("Author has been added!");
+                        res.send("Author has been added!");
+                    }
+                });
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
+            }
+        } else {
             console.log("Something went wrong!");
-        }
-        else{
-            console.log("Data added!");
+            res.send("You don't have authorization!");
         }
     });
-    res.send("ok");
 });
 
 /*
@@ -167,53 +174,61 @@ app.post('/authors', (req, res) => {
 */
 app.put('/authors', (req, res) => {
     var data = {
-        authorID: req.body.userinput.authorID[0],
-        firstname: req.body.userinput.firstname[0],
-        lastname: req.body.userinputlastname[0],
-        nationality: req.body.userinput.nationality[0] 
-    }
-    if (req.body.userinput.firstname[0]){
-        var SQL = `UPDATE author SET firstname = ? WHERE authorID = ?`;
-        var params = [data.firstname, data.authorID];
-
-        db.run(SQL, params, (err) => {
-            if(err){
-                console.log("Something went wrong!");
-            }
-            else{
-                console.log("Firstname changed!");
-            }
-        });
+        authorID: req.body.useri.authorid[0],
+        firstname: req.body.useri.firstname[0],
+        lastname: req.body.useri.lastname[0],
+        nationality: req.body.useri.nationality[0] 
     }
 
-    if (req.body.userinput.lastname[0]){
-        var SQL = `UPDATE author SET lastname = ? WHERE authorID = ?`;
-        var params = [data.lastname, data.authorID];
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID) {
+                if (req.body.useri.firstname[0]) {
+                    var SQL = `UPDATE author SET firstname = ? WHERE authorID = ?`;
+                    var params = [data.firstname, data.authorID];
 
-        db.run(SQL, params, (err) => {
-            if(err){
-                console.log("Something went wrong!");
-            }
-            else{
-                console.log("Lastename changed!");
-            }
-        });
-    }
+                    db.run(SQL, params, (err) => {
+                        if(err) {
+                            console.log("Something went wrong!");
+                        } else {
+                            console.log("Firstname changed!");
+                        }
+                    });
+                } else if (req.body.useri.lastname[0]){
+                    var SQL = `UPDATE author SET lastname = ? WHERE authorID = ?`;
+                    var params = [data.lastname, data.authorID];
 
-    if (req.body.userinput.nationality[0]){
-        var SQL = `UPDATE author SET nationality = ? WHERE authorID = ?`;
-        var params = [data.nationality, data.authorID];
+                    db.run(SQL, params, (err) => {
+                        if(err) {
+                            console.log("Something went wrong!");
+                        } else {
+                            console.log("Lastename changed!");
+                        }
+                    });
+                } else if (req.body.useri.nationality[0]){
+                    var SQL = `UPDATE author SET nationality = ? WHERE authorID = ?`;
+                    var params = [data.nationality, data.authorID];
 
-        db.run(SQL, params, (err) => {
-            if(err){
-                console.log("Something went wrong!");
+                    db.run(SQL, params, (err) => {
+                        if(err) {
+                            console.log("Something went wrong!");
+                        } else {
+                            console.log("Nationality changed!");
+                        }
+                    });
+                }
+                res.send("Changes have been made...");
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
             }
-            else{
-                console.log("Nationality changed!");
-            }
-        });
-    }
-    res.send("Changes have been made...");
+        } else {
+            console.log("User not logged in!");
+            res.send("You don't have authorization, please login!");
+        }
+    });
 });
 
 /*
@@ -221,36 +236,49 @@ app.put('/authors', (req, res) => {
 */
 app.delete('/authors', (req, res) => {
     var data = {
-        authorID: req.body.userinput.authorID[0]
+        authorID: req.body.useri.authorid[0]
     }
     console.log(data);
-    console.log("Req body value: " + req.body.userinput.authorID[0]);
-    if (req.body.userinput.authorID[0]) {
-    	var SQL = `DELETE FROM author WHERE authorID = ?`;
-    	var params = [data.authorID];
 
-    	db.run(SQL, params, (err) => {
-        	if(err){
-            	console.log("Something went wrong!");
-            	res.send("Something went wrong!");
-        	}else{
-            	console.log("Author " + data.authorID + " is deleted!");
-            	res.send("Author " + data.authorID + " is deleted");
-        	}
-    	});
-    } else {
-    	var SQL = `DELETE FROM author`;
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID) {
+                if (req.body.useri.authorid[0]) {
+    	           var SQL = `DELETE FROM author WHERE authorID = ?`;
+    	           var params = [data.authorID];
 
-    	db.run(SQL, (err) => {
-        	if(err){
-            	console.log("Something went wrong!");
-        	}else{
-            	console.log("Tabel author has been deleted!");
-            	res.send("Tabel author has been deleted!");
-        	}
-    	});
-    }
-    console.log(data);    
+    	           db.run(SQL, params, (err) => {
+        	           if(err) {
+            	           console.log("Something went wrong!");
+            	           res.send("Something went wrong!");
+        	           } else {
+            	           console.log("Author " + data.authorID + " is deleted!");
+            	           res.send("Author " + data.authorID + " is deleted");
+        	           }
+    	           });
+                } else {
+    	           var SQL = `DELETE FROM author`;
+
+    	           db.run(SQL, (err) => {
+        	           if(err) {
+            	           console.log("Something went wrong!");
+        	           } else {
+            	           console.log("Tabel author has been deleted!");
+            	           res.send("Tabel author has been deleted!");
+        	           }
+    	           });
+                }
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
+            }
+        } else {
+            console.log("User not logged in!");
+            res.send("You don't have authorization, please login!");
+        }
+    }); 
 });
 
 
@@ -272,12 +300,10 @@ app.get('/books/:bookid', (req, res) => {
             $bookID: bookLookup
         },
         (err, rows) => {
-            //console.log(rows);
-            if(rows.length > 0){
+            if(rows.length > 0) {
                 var xmlResponse = js2xmlparser.parse("book", rows);
                 res.send(xmlResponse);
-            } 
-            else {
+            } else {
                 res.send("Couldn't find anything...")
             }
         }
@@ -288,18 +314,15 @@ app.get('/books/:bookid', (req, res) => {
 * GET
 */
 app.get('/books', (req, res) => {
-    db.all(
-        'SELECT * FROM book',
-        (err, rows) => {
-            console.log(rows);
-            if(rows.length > 0){
-                res.send(js2xmlparser.parse("books", rows));
-            } 
-            else {
+    db.all('SELECT * FROM book', (err, rows) => {
+        console.log(rows);
+        if(rows.length > 0) {
+            res.send(js2xmlparser.parse("books", rows));
+        } else {
                 res.send("Couldn't find anything...");
-            }
         }
-    );
+        
+    });
 });
 
 
@@ -307,26 +330,40 @@ app.get('/books', (req, res) => {
 * POST
 */
 app.post('/books', (req, res) => {
-    var SQL = `INSERT INTO book(bookID, booktitle, authorID) VALUES(?,?,?);`;
     var data = {
-        bookID: req.body.userinput.bookID[0],
-        booktitle: req.body.userinput.booktitle[0],
-        authorID: req.body.userinput.authorID[0]
+        bookID: req.body.useri.bookid[0],
+        booktitle: req.body.useri.booktitle[0],
+        authorID: req.body.useri.authorid[0]
     }
     var params = [data.bookID, data.booktitle, data.authorID];
+    
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID) {
+                var SQL = `INSERT INTO book(bookID, booktitle, authorID) VALUES(?,?,?);`;
+                console.log(data);
 
-    console.log(data);
+                db.run(SQL, params, (err) => {
+                    if(err) {
+                        console.log("Something went wrong!");
+                        res.send("Something went wrong!");
+                    } else {
+                        console.log("Data added!");
+                        res.send("Book " + data.bookID + " is added");
+                    }
+                });
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
+            }
+        } else {
+            console.log("User not logged in!");
+            res.send("You don't have authorization, please login!");
+        }
+    }); 
 
-    db.run(SQL, params, (err) => {
-        if(err){
-            console.log("Something went wrong!");
-            res.send("Something went wrong!");
-        }
-        else{
-            console.log("Data added!");
-            res.send("Book " + data.bookID + " is added");
-        }
-    });
 });
 
 /*
@@ -334,41 +371,53 @@ app.post('/books', (req, res) => {
 */
 app.put('/books', (req, res) => {
     var data = {
-        booktitle: req.body.userinput.booktitle[0], 
-        authorID: req.body.userinput.authorID[0],
-        bookID: req.body.userinput.bookID[0]
+        booktitle: req.body.useri.booktitle[0], 
+        authorID: req.body.useri.authorid[0],
+        bookID: req.body.useri.bookid[0]
     }
-    console.log(req.body.userinput.booktitle[0]);
-    if (req.body.userinput.booktitle[0]) {
-        var SQL = `UPDATE book SET booktitle = ? WHERE bookID = ?`;
-        var params = [data.booktitle, data.bookID];
-        console.log(data);
 
-        db.run(SQL, params, (err) => {
-        if(err){
-            console.log("Something went wrong!");
-        }
-        else{
-            console.log("Data added!");
-        }
-        });
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID) {
+                if (req.body.useri.booktitle[0]) {
+                    var SQL = `UPDATE book SET booktitle = ? WHERE bookID = ?`;
+                    var params = [data.booktitle, data.bookID];
+                    console.log(data);
 
-    }
-    if (req.body.userinput.authorID[0]) {
-        var SQL = `UPDATE book SET authorID = ? WHERE bookID = ?`;
-        var params = [data.authorID, data.bookID];
-        console.log(data);
+                    db.run(SQL, params, (err) => {
+                        if(err) {
+                            console.log("Something went wrong!");
+                        } else {
+                            console.log("Data added!");
+                        }
+                    });
 
-        db.run(SQL, params, (err) => {
-        if(err){
-            console.log("Something went wrong!");
+                } else if (req.body.useri.authorid[0]) {
+                    var SQL = `UPDATE book SET authorID = ? WHERE bookID = ?`;
+                    var params = [data.authorID, data.bookID];
+                    console.log(data);
+
+                    db.run(SQL, params, (err) => {
+                        if(err) {
+                            console.log("Something went wrong!");
+                        } else {
+                            console.log("Data added!");
+                        }
+                    });
+                }
+                res.send("Changes has been made");
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
+            }
+        } else {
+            console.log("User not logged in!");
+            res.send("You don't have authorization, please login!");
         }
-        else{
-            console.log("Data added!");
-        }
-        });
-    }
-    res.send("Changes has been made");
+    }); 
+
 });
 
 /*
@@ -376,34 +425,48 @@ app.put('/books', (req, res) => {
 */
 app.delete('/books', (req, res) => {
     var data = {
-        bookID: req.body.userinput.bookID[0]
+        bookID: req.body.useri.bookid[0]
     }
-    if (req.body.userinput.bookID[0]) {
-    	var SQL = `DELETE FROM book WHERE bookID = ?`;
-    	var params = [data.bookID];
+    sessionID = req.cookies['SessionID'];
+    var SQL = `SELECT sessionID FROM sessioninfo WHERE sessionID = ?`;
+    db.get(SQL, sessionID, (err, row) => {
+        if(row != null) {
+            if (row.sessionID == sessionID) {
+                if (req.body.useri.bookid[0]) {
+    	           var SQL = `DELETE FROM book WHERE bookID = ?`;
+    	           var params = [data.bookID];
 
-    	db.run(SQL, params, (err) => {
-        	if(err){
-            	console.log("Something went wrong!");
-            	res.send("Something went wrong!")
-        	}else{
-            	console.log("Book " + data.bookID + " has been deleted!");
-            	res.send("Book " + data.bookID + " has been deleted!");
-        	}
-    	});
-    } else {
-    	var SQL = `DELETE FROM book`;
+    	           db.run(SQL, params, (err) => {
+        	           if(err) {
+            	           console.log("Something went wrong!");
+            	           res.send("Something went wrong!")
+        	           } else {
+            	           console.log("Book " + data.bookID + " has been deleted!");
+            	           res.send("Book " + data.bookID + " has been deleted!");
+        	           }
+    	           });
+                } else {
+    	           var SQL = `DELETE FROM book`;
 
-    	db.run(SQL, (err) => {
-        	if(err){
-            	console.log("Something went wrong!");
-            	res.send("Something went wrong!");
-        	}else{
-            	console.log("Tabel books has been deleted!");
-            	res.send("Tabel books has been deleted!");
-        	}
-    	});
-    }
+    	           db.run(SQL, (err) => {
+        	           if(err) {
+            	           console.log("Something went wrong!");
+            	           res.send("Something went wrong!");
+        	           } else {
+            	           console.log("Tabel books has been deleted!");
+            	           res.send("Tabel books has been deleted!");
+        	           }
+    	           });
+                }
+            } else {
+                console.log("SessionID is not equal!");
+                res.send("Your sessionID has expired! Please Login again, or contact admin.");
+            }
+        } else {
+            console.log("User not logged in!");
+            res.send("You don't have authorization, please login!");
+        }
+    }); 
 });
 
 
