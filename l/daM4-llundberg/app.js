@@ -134,18 +134,18 @@ app.get('/authors', (req, res) => {
 * POST
 */
 app.post('/authors', (req, res) => {
-    var SQL = `INSERT INTO author(authorID, firstname, lastname, nationality) VALUES(?,?,?,?);`;
     var data = {
-        authorID: req.body.authorID,
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        nationality: req.body.nationality 
+        authorID: req.body.userinput.authorID[0],
+        firstname: req.body.userinput.firstname[0],
+        lastname: req.body.userinput.lastname[0],
+        nationality: req.body.userinput.nationality[0] 
     }
     var params = [data.authorID, data.firstname, data.lastname, data.nationality];
+    var cookie = req.body.cookie;
 
     console.log(data);
 
-    //db.run(sql, params, function(err))i-bin/index2.cgi
+    var SQL = `INSERT INTO author(authorID, firstname, lastname, nationality) VALUES(?,?,?,?);`;
     db.run(SQL, params, (err) => {
         if(err){
             console.log("Something went wrong!");
@@ -162,12 +162,12 @@ app.post('/authors', (req, res) => {
 */
 app.put('/authors', (req, res) => {
     var data = {
-        authorID: req.body.authorID,
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        nationality: req.body.nationality 
+        authorID: req.body.userinput.authorID[0],
+        firstname: req.body.userinput.firstname[0],
+        lastname: req.body.userinputlastname[0],
+        nationality: req.body.userinput.nationality[0] 
     }
-    if (req.body.firstname){
+    if (req.body.userinput.firstname[0]){
         var SQL = `UPDATE author SET firstname = ? WHERE authorID = ?`;
         var params = [data.firstname, data.authorID];
 
@@ -176,12 +176,12 @@ app.put('/authors', (req, res) => {
                 console.log("Something went wrong!");
             }
             else{
-                console.log("Data added!");
+                console.log("Firstname changed!");
             }
         });
     }
 
-    if (req.body.lastname){
+    if (req.body.userinput.lastname[0]){
         var SQL = `UPDATE author SET lastname = ? WHERE authorID = ?`;
         var params = [data.lastname, data.authorID];
 
@@ -190,12 +190,12 @@ app.put('/authors', (req, res) => {
                 console.log("Something went wrong!");
             }
             else{
-                console.log("Data added!");
+                console.log("Lastename changed!");
             }
         });
     }
 
-    if (req.body.nationality){
+    if (req.body.userinput.nationality[0]){
         var SQL = `UPDATE author SET nationality = ? WHERE authorID = ?`;
         var params = [data.nationality, data.authorID];
 
@@ -204,11 +204,11 @@ app.put('/authors', (req, res) => {
                 console.log("Something went wrong!");
             }
             else{
-                console.log("Data added!");
+                console.log("Nationality changed!");
             }
         });
     }
-    res.send("all good homie");
+    res.send("Changes have been made...");
 });
 
 /*
@@ -216,21 +216,21 @@ app.put('/authors', (req, res) => {
 */
 app.delete('/authors', (req, res) => {
     var data = {
-        authorID: req.body.authorID
+        authorID: req.body.userinput.authorID[0]
     }
     console.log(data);
-    console.log("req body value: " + req.body.authorID);
-    if (req.body.authorID) {
+    console.log("Req body value: " + req.body.userinput.authorID[0]);
+    if (req.body.userinput.authorID[0]) {
     	var SQL = `DELETE FROM author WHERE authorID = ?`;
     	var params = [data.authorID];
 
     	db.run(SQL, params, (err) => {
         	if(err){
             	console.log("Something went wrong!");
-            	res.send("Something went wrong!")
+            	res.send("Something went wrong!");
         	}else{
-            	console.log("Data deleted!");
-            	res.send("Data deleted!")
+            	console.log("Author " + data.authorID + " is deleted!");
+            	res.send("Author " + data.authorID + " is deleted");
         	}
     	});
     } else {
@@ -239,10 +239,9 @@ app.delete('/authors', (req, res) => {
     	db.run(SQL, (err) => {
         	if(err){
             	console.log("Something went wrong!");
-            	res.send("Something went wrong!")
         	}else{
-            	console.log("Data deleted!");
-            	res.send("Data deleted!")
+            	console.log("Tabel author has been deleted!");
+            	res.send("Tabel author has been deleted!");
         	}
     	});
     }
@@ -289,7 +288,6 @@ app.get('/books', (req, res) => {
         (err, rows) => {
             console.log(rows);
             if(rows.length > 0){
-                //res.send(rows);
                 res.send(js2xmlparser.parse("books", rows));
             } 
             else {
@@ -306,23 +304,22 @@ app.get('/books', (req, res) => {
 app.post('/books', (req, res) => {
     var SQL = `INSERT INTO book(bookID, booktitle, authorID) VALUES(?,?,?);`;
     var data = {
-        bookID: req.body.bookID,
-        booktitle: req.body.booktitle,
-        authorID: req.body.authorID
+        bookID: req.body.userinput.bookID[0],
+        booktitle: req.body.userinput.booktitle[0],
+        authorID: req.body.userinput.authorID[0]
     }
     var params = [data.bookID, data.booktitle, data.authorID];
 
     console.log(data);
 
-    //db.run(sql, params, function(err))
     db.run(SQL, params, (err) => {
         if(err){
             console.log("Something went wrong!");
-            res.send("Something went wrong!")
+            res.send("Something went wrong!");
         }
         else{
             console.log("Data added!");
-            res.send("Ok!")
+            res.send("Book " + data.bookID + " is added");
         }
     });
 });
@@ -332,12 +329,12 @@ app.post('/books', (req, res) => {
 */
 app.put('/books', (req, res) => {
     var data = {
-        booktitle: req.body.booktitle, 
-        authorID: req.body.authorID,
-        bookID: req.body.bookID
+        booktitle: req.body.userinput.booktitle[0], 
+        authorID: req.body.userinput.authorID[0],
+        bookID: req.body.userinput.bookID[0]
     }
-    console.log(req.body.booktitle);
-    if (req.body.booktitle) {
+    console.log(req.body.userinput.booktitle[0]);
+    if (req.body.userinput.booktitle[0]) {
         var SQL = `UPDATE book SET booktitle = ? WHERE bookID = ?`;
         var params = [data.booktitle, data.bookID];
         console.log(data);
@@ -352,12 +349,11 @@ app.put('/books', (req, res) => {
         });
 
     }
-    if (req.body.authorID) {
+    if (req.body.userinput.authorID[0]) {
         var SQL = `UPDATE book SET authorID = ? WHERE bookID = ?`;
         var params = [data.authorID, data.bookID];
         console.log(data);
 
-        //db.run(sql, params, function(err))
         db.run(SQL, params, (err) => {
         if(err){
             console.log("Something went wrong!");
@@ -367,7 +363,7 @@ app.put('/books', (req, res) => {
         }
         });
     }
-    res.send("All good homie");
+    res.send("Changes has been made");
 });
 
 /*
@@ -375,9 +371,9 @@ app.put('/books', (req, res) => {
 */
 app.delete('/books', (req, res) => {
     var data = {
-        bookID: req.body.bookID
+        bookID: req.body.userinput.bookID[0]
     }
-    if (req.body.bookID) {
+    if (req.body.userinput.bookID[0]) {
     	var SQL = `DELETE FROM book WHERE bookID = ?`;
     	var params = [data.bookID];
 
@@ -386,8 +382,8 @@ app.delete('/books', (req, res) => {
             	console.log("Something went wrong!");
             	res.send("Something went wrong!")
         	}else{
-            	console.log("Data deleted!");
-            	res.send("Data deleted!")
+            	console.log("Book " + data.bookID + " has been deleted!");
+            	res.send("Book " + data.bookID + " has been deleted!");
         	}
     	});
     } else {
@@ -396,10 +392,10 @@ app.delete('/books', (req, res) => {
     	db.run(SQL, (err) => {
         	if(err){
             	console.log("Something went wrong!");
-            	res.send("Something went wrong!")
+            	res.send("Something went wrong!");
         	}else{
-            	console.log("Data deleted!");
-            	res.send("Data deleted!")
+            	console.log("Tabel books has been deleted!");
+            	res.send("Tabel books has been deleted!");
         	}
     	});
     }
