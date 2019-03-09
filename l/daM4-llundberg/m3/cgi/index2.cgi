@@ -81,6 +81,7 @@ cat << EOF
 </form>
 
 <form method=POST>
+    <h4>Add / Edit / Delete</h4>
   	<select name=table>
   		<option value="authors">Authors</option>
   		<option value="books">Books</option>
@@ -89,9 +90,9 @@ cat << EOF
   <input type="text" placeholder="Parameter 1" name="param1"><br>
   <input type="text" placeholder="Parameter 2" name="param2"><br>
   <input type="text" placeholder="Parameter 3" name="param3"><br>
-  <input type="radio" name="action" value="PUT"> Edit<br>
-  <input type="radio" name="action" value="POST"> Add<br>
-  <input type="radio" name="action" value="DELETE"> Delete<br>
+  <input type="radio" name="request" value="POST"> Add<br>
+  <input type="radio" name="request" value="PUT"> Edit<br>
+  <input type="radio" name="request" value="DELETE"> Delete<br>
   <button type="submit">Submit</button>
 </form>
 </body>
@@ -100,55 +101,57 @@ EOF
 
 #/usr/bin/env
 
-
-
-ACTION_TYPE=$(echo $POST_BODY | awk -F "action=" '{print $2}')
-echo $ACTION_TYPE
-if [ "$ACTION_TYPE" == *"GET"* ] ; then 
-    resp=$(curl --request $REQ "http://172.17.0.2:3000/$TABLE/$ID")
-    echo '<br>'
+if [ "$REQUEST_METHOD" = "GET" ] ; then
+    TABLE=$(echo $QUERY_STRING | awk -F'[=&]' {'print $2'})
+    ID=$(echo $QUERY_STRING | awk -F'[=&]' {'print $4'})
+      resp=$(curl --request GET "http://172.17.0.2:3000/$TABLE/$ID")
+    
 fi
 
-  TABLE=$(echo $POST_BODY | awk -F'[=&]' {'print $2'})
-  ID=$(echo $POST_BODY | awk -F'[=&]' {'print $4'})
-  PARAM1=$(echo $POST_BODY | awk -F'[=&]' {'print $6'})
-  PARAM2=$(echo $POST_BODY | awk -F'[=&]' {'print $8'})
-  PARAM3=$(echo $POST_BODY | awk -F'[=&]' {'print $10'})
 
-  if [[ "$REQ" == *"POST"* ]] ; then
-    if [[ "$TABLE" == *"authors"* ]] ; then
+echo "ACTION_TYPE = " $ACTION_TYPE
+echo '<br>'
+
+  if [ "$ACTION_TYPE" = "POST" ] ; then
+    TABLE=$(echo $POST_BODY | awk -F'[=&]' {'print $2'})
+    if [ "$TABLE" = "authors" ] ; then
+      TABLE=$(echo $POST_BODY | awk -F'[=&]' {'print $2'})
+      ID=$(echo $POST_BODY | awk -F'[=&]' {'print $4'})
+      PARAM1=$(echo $POST_BODY | awk -F'[=&]' {'print $6'})
+      PARAM2=$(echo $POST_BODY | awk -F'[=&]' {'print $8'})
+      PARAM3=$(echo $POST_BODY | awk -F'[=&]' {'print $10'})
+      echo $TABLE
+      echo '<br>'
       XML_CONTENT="<userinput><authorID>$ID</authorID><firstname>$PARAM1</firstname><lastname>$PARAM2</lastname><nationality>$PARAM3</nationality></userinput>"
+      echo $XML_CONTENT
       resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/authors" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
-    elif [[ "$TABLE" == *"books"* ]] ; then
+    elif [ "$TABLE" == *"books"* ] ; then
+      TABLE=$(echo $POST_BODY | awk -F'[=&]' {'print $2'})
+      ID=$(echo $POST_BODY | awk -F'[=&]' {'print $4'})
+      PARAM1=$(echo $POST_BODY | awk -F'[=&]' {'print $6'})
+      PARAM2=$(echo $POST_BODY | awk -F'[=&]' {'print $8'})
       XML_CONTENT="<userinput><bookID>$ID</bookID><booktitle>$PARAM1</booktitle><authorID>$PARAM2</authorID></userinput>"
       resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/books" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
     fi
-    echo '<br>'
   fi
 
-  if [[ "$REQ" == *"PUT"* ]] ; then
-    if [[ "$TABLE" == *"authors"* ]] ; then
-      XML_CONTENT="<userinput><authorID>$ID</authorID><firstname>$PARAM1</firstname><lastname>$PARAM2</lastname><nationality>$PARAM3</nationality></userinput>"
-      resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/authors" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
-    elif [[ "$TABLE" == *"books"* ]] ; then
-      XML_CONTENT="<userinput><bookID>$ID</bookID><booktitle>$PARAM1</booktitle><authorID>$PARAM2</authorID></userinput>"
-      resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/books" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
-    else
-      echo "Table name incorrect!"
-    fi
-    echo '<br>'
-  fi
+#  if [ "$ACTION_TYPE" = "PUT" ] ; then
+#    if [ "$TABLE" = "authors" ] ; then
+#      XML_CONTENT="<userinput><authorID>$ID</authorID><firstname>$PARAM1</firstname><lastname>$PARAM2</lastname><nationality>$PARAM3</nationality></userinput>"
+#      resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/authors" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
+#    elif [ "$TABLE" = "books" ] ; then
+#      XML_CONTENT="<userinput><bookID>$ID</bookID><booktitle>$PARAM1</booktitle><authorID>$PARAM2</authorID></userinput>"
+#      resp=$(curl --request POST --cookie "$HTTP_COOKIE" --url "http://172.17.0.2:3000/books" --header 'cache-control: no-cache' --header 'content-type: text/xml' --data "$XML_CONTENT")
+#    fi
+#  fi
 
-  if [[ "$REQ" == *"DELETE"* ]] ; then
-    if [[ "$TABLE" == *"authors"* ]] ; then
-      resp=$(curl --data "authorID=$ID" -X $REQ "http://172.17.0.2:3000/authors")
-    elif [[ "$TABLE" == *"books"* ]] ; then
-      resp=$(curl --data "bookID=$ID" -X $REQ "http://172.17.0.2:3000/books")
-    else
-      echo "WRONG!"
-    fi
-    echo '<br>'
-  fi
+#  if [ "$ACTION_TYPE" = "DELETE" ] ; then
+#    if [ "$TABLE" = "authors" ] ; then
+#      resp=$(curl --data "authorID=$ID" -X $REQ "http://172.17.0.2:3000/authors")
+#    elif [ "$TABLE" = "books" ] ; then
+#      resp=$(curl --data "bookID=$ID" -X $REQ "http://172.17.0.2:3000/books")
+#    fi
+#  fi
 
   echo '<br>'
   echo $resp

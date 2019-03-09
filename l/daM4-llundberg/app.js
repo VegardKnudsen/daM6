@@ -134,14 +134,19 @@ app.get('/authors', (req, res) => {
 * POST
 */
 app.post('/authors', (req, res) => {
+    console.log("AuthorID: " + req.body.userinput.authorID[0]);
     var data = {
         authorID: req.body.userinput.authorID[0],
         firstname: req.body.userinput.firstname[0],
         lastname: req.body.userinput.lastname[0],
         nationality: req.body.userinput.nationality[0] 
     }
+    console.log("AuthorID: " + req.body.userinput.authorID[0]);
+
     var params = [data.authorID, data.firstname, data.lastname, data.nationality];
     var cookie = req.body.cookie;
+    console.log("Req body: " + req.body);
+    console.log("Req cookie: " + req.cookies['SessionID']);
 
     console.log(data);
 
