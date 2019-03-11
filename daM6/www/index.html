@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajax Client</title>
+    <link rel="stylesheet" href="stylesheet.css">
+</head>
+<body>
+
+<h1>Online Library</h1>
+<form>
+    <h2>Login</h2>
+    <input type="text" placeholder="Username" name="uname">
+    <input type="password" placeholder="Password" name="psw">
+    <button type="button" onclick="login(uname.value, psw.value)">Login</button>
+    <button type="button" onclick="logout()">Logout</button>
+    <p id="output"></p>
+</form>
+
+<form>
+    <h2>Search / Add / Edit / Delete</h2>
+    <select name=table>
+        <option value="authors">Authors</option>
+        <option value="books">Books</option>
+    </select><br><br>
+    <input type="text" placeholder="Author ID / Book ID" name="inputID"><br>
+    <input type="text" placeholder="Firstname / Booktitle" name="param1"><br>
+    <input type="text" placeholder="Lastname / Author ID" name="param2"><br>
+    <input type="text" placeholder="Nationality" name="param3"><br>
+    <button type="button" onclick="get(table.value, inputID.value)">Search</button>
+    <button type="button" onclick="post(table.value, inputID.value, param1.value, param2.value, param3.value)">Add</button>
+    <button type="button" onclick="put(table.value, inputID.value, param1.value, param2.value, param3.value)">Edit</button>
+    <button type="button" onclick="del(table.value, inputID.value)">Delete</button>
+    <p id="data"></p>
+</form>
+
+<!-- LOGIN -->
+<script>
+    function login(uname, psw){
+        var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                "<logininfo><userid>"+uname+
+                "</userid><passwordhash>"+psw+
+                "</passwordhash></logininfo>";
+        var xhttp = new XMLHttpRequest(),
+            method = "POST",
+            url = "/login";
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                if (this.responseText == uname){
+                    var test = javaobject.showToast(uname);
+                    document.getElementById("output").innerHTML = test;  
+                } else {
+                    document.getElementById("output").innerHTML = this.responseText
+                }
+
+            }
+        };
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'text/xml');
+        xhttp.send(XML);
+    }
+</script>
+
+<!-- LOGOUT -->
+<script>
+    function logout(){
+        var xhttp = new XMLHttpRequest(),
+            method = "DELETE",
+            url = "/logout";
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("output").innerHTML = this.responseText;
+            }
+        };
+        xhttp.open(method, url, true);
+        xhttp.withCredentials = true;
+        xhttp.send();
+    }
+</script>
+
+
+<!-- GET -->
+<script>
+    function get(table, inputID) {
+        if (table == "authors") {
+            var xhttp = new XMLHttpRequest(),
+                method = "GET",
+                url = "/authors/" + inputID;
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.send();
+        } else {
+            var xhttp = new XMLHttpRequest(),
+                method = "GET",
+                url = "/books/" + inputID;
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.send();
+        }    
+    }
+</script>
+
+<!-- POST -->
+<script>
+    function post(table, inputID, param1, param2, param3) {
+        if (table == "authors") {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><authorid>"+inputID+
+                    "</authorid><firstname>"+param1+
+                    "</firstname><lastname>"+param2+
+                    "</lastname><nationality>"+param3+
+                    "</nationality></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "POST",
+                url = "/authors";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.send(XML);   
+        } else {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><bookid>"+inputID+
+                    "</bookid><booktitle>"+param1+
+                    "</booktitle><authorid>"+param2+
+                    "</authorid></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "POST",
+                url = "/books";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.withCredentials = true;
+            xhttp.send(XML);    
+        }
+   
+    }    
+</script>
+
+<!-- PUT -->
+<script>
+    function put(table, inputID, param1, param2, param3) {
+        if (table == "authors") {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><authorid>"+inputID+
+                    "</authorid><firstname>"+param1+
+                    "</firstname><lastname>"+param2+
+                    "</lastname><nationality>"+param3+
+                    "</nationality></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "PUT",
+                url = "/authors";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.withCredentials = true;
+            xhttp.send(XML);
+        } else {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><bookid>"+inputID+
+                    "</bookid><booktitle>"+param1+
+                    "</booktitle><authorid>"+param2+
+                    "</authorid></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "PUT",
+                url = "/books";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.withCredentials = true;
+            xhttp.send(XML);   
+        }
+    }
+</script>
+
+<!-- DELETE -->
+<script>
+    function del(table, inputID) {
+        if (table == "authors") {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><authorid>"+inputID+
+                    "</authorid></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "DELETE",
+                url = "/authors";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.withCredentials = true;
+            xhttp.send(XML);
+        } else {
+            var XML="<?xml version=1.0 encoding=UTF-8?>" +
+                    "<useri><bookid>"+inputID+
+                    "</bookid></useri>";
+            var xhttp = new XMLHttpRequest(),
+                method = "DELETE",
+                url = "/books";
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("data").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open(method, url, true);
+            xhttp.setRequestHeader('Content-type', 'text/xml');
+            xhttp.withCredentials = true;
+            xhttp.send(XML);
+        }
+    }    
+</script>
+
+</body>
+</html>
